@@ -13,12 +13,11 @@ function init() {
   // the first is the polygon layer and the second the points
   //var polyURL ="https://docs.google.com/spreadsheets/d/e/2PACX-1vR56hl4sLcz3OAT3Vsb-dSEHMEm3QA8TSyJLu8CFnOVmPnpCdOHybH1opIn11WDvbVyw33ROi6Uzmnd/pubhtml";
     //"https://docs.google.com/spreadsheets/d/1EUFSaqi30b6oefK0YWWNDDOzwmCTTXlXkFHAc2QrUxM/edit?usp=sharing";
-  var pointsURL ="https://docs.google.com/spreadsheets/d/1kjJVPF0LyaiaDYF8z_x23UulGciGtBALQ1a1pK0coRM/edit?usp=sharing";
+  var pointsURL ="https://docs.google.com/spreadsheets/d/1yIniMddiTvVcJFBO45tjeD6tSShpMJln9DfPcbKg0dU/edit?usp=sharing";
 
-  var polyURL ="https://docs.google.com/spreadsheets/d/1EUFSaqi30b6oefK0YWWNDDOzwmCTTXlXkFHAc2QrUxM/edit?usp=sharing";
+  var polyURL ="https://docs.google.com/spreadsheets/d/1cxH2l6Z0-wlgzLQgJs4-eMsDZQAq2XrLwQpf04e3Mx8/edit?usp=sharing";
   //var pointsURL ="https://docs.google.com/spreadsheets/d/1hEO51Lt59-IIrnAfDuB7eOJaKBYm5C_fdWIWEq4hLho/edit?usp=sharing";
 
-  Tabletop.init({ key: pointsURL, callback: initMap, simpleSheet: true });
   Tabletop.init({ key: polyURL, callback: addPolygons, simpleSheet: true });
   Tabletop.init({ key: pointsURL, callback: addPoints, simpleSheet: true }); // simpleSheet assumes there is only one table and automatically sends its data
 }
@@ -26,16 +25,6 @@ window.addEventListener("DOMContentLoaded", init);
 
 // Create a new Leaflet map centered on the continental US
 var map = L.map("map").setView([40, -100], 4);
-
-map.on('click', function(e) {
-        var marker = L.latLng(map.getCenter());
-        init();
-        var popLocation= e.latlng;
-        var popup = L.popup()
-        .setLatLng(popLocation)
-        .setContent('<p>Hi you are here!<br />LAT:'+popLocation.lat+'<br />LNG:'+popLocation.lng+'</p>')
-        .openOn(map);
-    });
 
 // This is the Carto Positron basemap
 var basemap = L.tileLayer(
@@ -70,13 +59,6 @@ map.on("click", function() {
   sidebar.close(panelID);
 });
 
-
-//InitMap
-function initMap() {
-    map.locate({setView: true, maxZoom: 16});
-}
-
-
 // These are declared outisde the functions so that the functions can check if they already exist
 var polygonLayer;
 var pointGroupLayer;
@@ -89,6 +71,8 @@ function addPolygons(data) {
     // If the layer exists, remove it and continue to make a new one with data
     polygonLayer.remove();
   }
+
+
 
   // Need to convert the Tabletop.js JSON into a GeoJSON
   // Start with an empty GeoJSON of type FeatureCollection
@@ -118,8 +102,6 @@ function addPolygons(data) {
       });
     }
   }
-
-
 
   // The polygons are styled slightly differently on mouse hovers
   var polygonStyle = { color: "#2ca25f", fillColor: "#99d8c9", weight: 1.5 };
@@ -153,27 +135,6 @@ function addPolygons(data) {
   }).addTo(map);
 }
 
-
-function getDistance(origin, destination) {
-    // return distance in meters
-    var lon1 = toRadian(origin[1]),
-        lat1 = toRadian(origin[0]),
-        lon2 = toRadian(destination[1]),
-        lat2 = toRadian(destination[0]);
-
-    var deltaLat = lat2 - lat1;
-    var deltaLon = lon2 - lon1;
-
-    var a = Math.pow(Math.sin(deltaLat/2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(deltaLon/2), 2);
-    var c = 2 * Math.asin(Math.sqrt(a));
-    var EARTH_RADIUS = 6371;
-    return c * EARTH_RADIUS * 1000;
-}
-function toRadian(degree) {
-    return degree*Math.PI/180;
-}
-
-
 // addPoints is a bit simpler, as no GeoJSON is needed for the points
 // It does the same check to overwrite the existing points layer once the Google Sheets data comes along
 function addPoints(data) {
@@ -182,15 +143,30 @@ function addPoints(data) {
   }
   pointGroupLayer = L.layerGroup().addTo(map);
 
-  var marker_center = L.latLng(map.getCenter());
-  var marker_center1 = map._lastCenter;
+  //1o simeio to Peristeri
+  var newelement1={};
+  newelement1.lat = 38.039139;
+  newelement1.lon = 23.679685;
+  newelement1.location = 'Peristeri';
+  newelement1.category = 'This is a very beautiful city.';
+  data.push(newelement1);
 
-  var newelement={};
-  newelement.lat = 38.008676699999995;
-  newelement.lon = 23.6744093;
-  newelement.location = 'Peristeri';
-  newelement.category = 'This is a very beautiful state.';
-  data.push(newelement);
+  //2o simeio i Filadelfia
+  var newelement2={};
+  newelement2.lat = 38.037970;
+  newelement2.lon = 23.740237;
+  newelement2.location = 'Nea Filadelfia';
+  newelement2.category = 'This is Nea Filadelfia.';
+  data.push(newelement2);
+
+  //To Polygon me ta simeia pou tou orisa
+  var polygonPoints = [
+        [38.041872, 23.668702],
+        [38.044036, 23.698589],
+        [38.033760, 23.696184],
+        [38.032679, 23.674885]];
+
+  var mypolygon = L.polygon(polygonPoints).addTo(map);
 
   // Choose marker type. Options are:
   // (these are case-sensitive, defaults to marker!)
@@ -213,12 +189,13 @@ function addPoints(data) {
     } else {
       marker = L.marker([data[row].lat, data[row].lon]);
     }
-
-    var distance = getDistance([marker_center.lat, marker_center.lng], [marker._latlng.lat, marker._latlng.lng])
-
-    if (distance < 100) {
+    
+    //Mono oti vrisketai ektos tou Polygon tha ginetai add ston xarti
+    if (!mypolygon.getBounds().contains(marker._latlng))
+    {
         marker.addTo(pointGroupLayer);
     }
+
 
     // UNCOMMENT THIS LINE TO USE POPUPS
     //marker.bindPopup('<h2>' + data[row].location + '</h2>There's a ' + data[row].level + ' ' + data[row].category + ' here');
@@ -243,7 +220,7 @@ function addPoints(data) {
 
     // AwesomeMarkers is used to create fancier icons
     var icon = L.AwesomeMarkers.icon({
-      icon: "tint",
+      icon: "info-sign",
       iconColor: "white",
       markerColor: getColor(data[row].category),
       prefix: "glyphicon",
