@@ -16,7 +16,7 @@ function init() {
   var pointsURL ="https://docs.google.com/spreadsheets/d/1kjJVPF0LyaiaDYF8z_x23UulGciGtBALQ1a1pK0coRM/edit?usp=sharing";
 
   var polyURL ="https://docs.google.com/spreadsheets/d/1EUFSaqi30b6oefK0YWWNDDOzwmCTTXlXkFHAc2QrUxM/edit?usp=sharing";
-  //var pointsURL ="https://docs.google.com/spreadsheets/d/1hEO51Lt59-IIrnAfDuB7eOJaKBYm5C_fdWIWEq4hLho/edit?usp=sharing"; 
+  //var pointsURL ="https://docs.google.com/spreadsheets/d/1hEO51Lt59-IIrnAfDuB7eOJaKBYm5C_fdWIWEq4hLho/edit?usp=sharing";
 
   Tabletop.init({ key: pointsURL, callback: initMap, simpleSheet: true });
   Tabletop.init({ key: polyURL, callback: addPolygons, simpleSheet: true });
@@ -26,6 +26,16 @@ window.addEventListener("DOMContentLoaded", init);
 
 // Create a new Leaflet map centered on the continental US
 var map = L.map("map").setView([40, -100], 4);
+
+map.on('click', function(e) {
+        var marker = L.latLng(map.getCenter());
+        init();
+        var popLocation= e.latlng;
+        var popup = L.popup()
+        .setLatLng(popLocation)
+        .setContent('<p>Hi you are here!<br />LAT:'+popLocation.lat+'<br />LNG:'+popLocation.lng+'</p>')
+        .openOn(map);
+    });
 
 // This is the Carto Positron basemap
 var basemap = L.tileLayer(
@@ -143,6 +153,27 @@ function addPolygons(data) {
   }).addTo(map);
 }
 
+
+function getDistance(origin, destination) {
+    // return distance in meters
+    var lon1 = toRadian(origin[1]),
+        lat1 = toRadian(origin[0]),
+        lon2 = toRadian(destination[1]),
+        lat2 = toRadian(destination[0]);
+
+    var deltaLat = lat2 - lat1;
+    var deltaLon = lon2 - lon1;
+
+    var a = Math.pow(Math.sin(deltaLat/2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(deltaLon/2), 2);
+    var c = 2 * Math.asin(Math.sqrt(a));
+    var EARTH_RADIUS = 6371;
+    return c * EARTH_RADIUS * 1000;
+}
+function toRadian(degree) {
+    return degree*Math.PI/180;
+}
+
+
 // addPoints is a bit simpler, as no GeoJSON is needed for the points
 // It does the same check to overwrite the existing points layer once the Google Sheets data comes along
 function addPoints(data) {
@@ -151,10 +182,13 @@ function addPoints(data) {
   }
   pointGroupLayer = L.layerGroup().addTo(map);
 
+  var marker_center = L.latLng(map.getCenter());
+  var marker_center1 = map._lastCenter;
+
   var newelement={};
-  newelement.lat = 40;
-  newelement.lon = -92;
-  newelement.location = 'Kansas';
+  newelement.lat = 38.008676699999995;
+  newelement.lon = 23.6744093;
+  newelement.location = 'Peristeri';
   newelement.category = 'This is a very beautiful state.';
   data.push(newelement);
 
@@ -179,7 +213,12 @@ function addPoints(data) {
     } else {
       marker = L.marker([data[row].lat, data[row].lon]);
     }
-    marker.addTo(pointGroupLayer);
+
+    var distance = getDistance([marker_center.lat, marker_center.lng], [marker._latlng.lat, marker._latlng.lng])
+
+    if (distance < 100) {
+        marker.addTo(pointGroupLayer);
+    }
 
     // UNCOMMENT THIS LINE TO USE POPUPS
     //marker.bindPopup('<h2>' + data[row].location + '</h2>There's a ' + data[row].level + ' ' + data[row].category + ' here');
