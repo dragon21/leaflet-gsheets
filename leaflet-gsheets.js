@@ -166,6 +166,7 @@ function addPoints(data) {
         [38.033760, 23.696184],
         [38.032679, 23.674885]];
 
+  //Kanw add to Polygon ston xarti
   var mypolygon = L.polygon(polygonPoints).addTo(map);
 
   // Choose marker type. Options are:
@@ -189,7 +190,7 @@ function addPoints(data) {
     } else {
       marker = L.marker([data[row].lat, data[row].lon]);
     }
-    
+
     //Mono oti vrisketai ektos tou Polygon tha ginetai add ston xarti
     if (!mypolygon.getBounds().contains(marker._latlng))
     {
